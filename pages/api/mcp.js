@@ -1,4 +1,4 @@
-import { consultaClima } from "../../lib/mcp/consultaClima";
+import { server } from "../../lib/mcp/server";
 
 export default async function handler(req, res) {
   const cidade = req.query.cidade || req.body?.cidade;
@@ -8,12 +8,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const baseUrl = `${req.headers["x-forwarded-proto"] || "http"}://${
-      req.headers.host
-    }`;
-    const data = await consultaClima(cidade, baseUrl);
-    res.status(200).json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const result = await server._registeredTools[
+      "consulta-clima-cidade"
+    ].callback({ cidade });
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 }
