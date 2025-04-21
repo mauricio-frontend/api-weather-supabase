@@ -7,22 +7,36 @@ export default function ChatBot() {
   const [messages, setMessages] = useState([
     {
       sender: "bot",
-      text: "Olá! Me diga uma cidade ou data para consultar o clima.",
+      text: "Olá! Me diga uma cidade para consultar o clima.",
     },
   ]);
 
-  const handleSend = (text) => {
+  const handleSend = async (text) => {
     if (!text) return;
     setMessages((prev) => [...prev, { sender: "user", text }]);
 
-    // Simula resposta do bot
-    setTimeout(() => {
+    setMessages((prev) => [
+      ...prev,
+      { sender: "bot", text: "Buscando dados para: " + text },
+    ]);
+
+    try {
+      const response = await fetch(
+        `/api/mcp?cidade=${encodeURIComponent(text)}`
+      );
+      const data = await response.json();
+
       setMessages((prev) => [
         ...prev,
-        { sender: "user", text },
-        { sender: "bot", text: "Buscando dados para: " + text },
+        { sender: "bot", text: data.content[0].text || "Consulta concluída." },
       ]);
-    }, 500);
+
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: "Erro ao buscar o clima. Tente novamente." },
+      ]);
+    }
   };
 
   return (

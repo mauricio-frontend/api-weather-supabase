@@ -1,8 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
 function normalizarCidade(str) {
-  return str.normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toUpperCase();
 }
 
@@ -12,8 +13,8 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Método não permitido' });
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Método não permitido" });
   }
 
   try {
@@ -26,33 +27,37 @@ export default async function handler(req, res) {
       const cidadeNormalizada = normalizarCidade(cidade);
 
       const { data: stationData, error: stationError } = await supabase
-        .from('stations')
-        .select('id_station, city_station, state')
-        .ilike('city_station', `%${cidadeNormalizada}%`);
+        .from("stations")
+        .select("id_station, city_station, state")
+        .ilike("city_station", `%${cidadeNormalizada}%`);
 
       if (stationError || !stationData || stationData.length === 0) {
-        return res.status(404).json({ error: 'Nenhuma estação encontrada para essa cidade' });
+        return res
+          .status(404)
+          .json({ error: "Nenhuma estação encontrada para essa cidade" });
       }
 
-      stationIds = stationData.map(estacao => estacao.id_station);
+      stationIds = stationData.map((estacao) => estacao.id_station);
       stationsData = stationData;
     }
 
     let query = supabase
-      .from('weather_data')
-      .select('*');
+      .from("weather_data")
+      .select("temp_avg, date, station_code");
 
     if (stationIds.length > 0) {
-      query = query.in('station_code', stationIds);
+      query = query.in("station_code", stationIds);
     }
 
     if (data_inicio) {
-      query = query.gte('date', data_inicio);
+      query = query.gte("date", data_inicio);
     }
 
     if (data_fim) {
-      query = query.lte('date', data_fim);
+      query = query.lte("date", data_fim);
     }
+
+    query.order("date", { ascending: true });
 
     const { data: weatherData, error: weatherError } = await query;
 
@@ -60,21 +65,36 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: weatherError.message });
     }
 
+    const temperaturas = weatherData.map((item) => item.temp_avg);
+    const media =
+      temperaturas.reduce((sum, val) => sum + val, 0) / temperaturas.length;
+
+    const start_date = weatherData[0].date;
+    const end_date = weatherData[weatherData.length - 1].date;
+
     const resultadoFinal = weatherData.map((weatherRecord) => {
       const stationInfo = stationsData.find(
         (station) => station.id_station === weatherRecord.station_code
       );
 
       return {
-        ...weatherRecord, // Dados do clima
+        ...weatherRecord,
         city_station: stationInfo ? stationInfo.city_station : null,
         state: stationInfo ? stationInfo.state : null,
       };
     });
 
-    return res.status(200).json(resultadoFinal);
+    const result = {
+      start_date,
+      end_date,
+      media: media.toFixed(2),
+      mensagem: `O clima médio para a cidade de ${cidade} de ${start_date} a ${end_date} é de ${media.toFixed(2)} graus.`,
+      data: [...resultadoFinal]
+    }
+
+    return res.status(200).json(result);
   } catch (err) {
-    console.error('Erro no servidor:', err);
-    return res.status(500).json({ error: 'Erro interno do servidor' });
+    console.error("Erro no servidor:", err);
+    return res.status(500).json({ error: "Erro interno do servidor" });
   }
 }
