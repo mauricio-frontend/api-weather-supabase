@@ -3,7 +3,7 @@
 import { useState } from "react";
 import MessageInput from "./MessageInput";
 
-export default function ChatBot() {
+export default function ChatBot({ onUpdateData }) {
   const [messages, setMessages] = useState([
     {
       sender: "bot",
@@ -31,6 +31,7 @@ export default function ChatBot() {
         { sender: "bot", text: data.content[0].text || "Consulta concluída." },
       ]);
 
+      onUpdateData(data.data)
     } catch (error) {
       setMessages((prev) => [
         ...prev,

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.1",
+    "@nivo/line": "^0.88.0",
     "@supabase/supabase-js": "^2.49.4",
     "next": "15.3.1",
     "react": "^19.0.0",
