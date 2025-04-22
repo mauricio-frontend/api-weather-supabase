@@ -3,6 +3,11 @@
 import { useState } from "react";
 import MessageInput from "./MessageInput";
 
+function formatDate(dateStr) {
+  const [dd, mm, yyyy] = dateStr.split("/");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export default function ChatBot({ onUpdateData }) {
   const [messages, setMessages] = useState([
     {
@@ -12,26 +17,48 @@ export default function ChatBot({ onUpdateData }) {
   ]);
 
   const handleSend = async (text) => {
+    console.log(text);
     if (!text) return;
-    setMessages((prev) => [...prev, { sender: "user", text }]);
 
+    setMessages((prev) => [...prev, { sender: "user", text }]);
     setMessages((prev) => [
       ...prev,
-      { sender: "bot", text: "Buscando dados para: " + text },
+      { sender: "bot", text: "Buscando dados..." },
     ]);
 
+    const regex =
+      /Quero\s+saber\s+o\s+clima\s+em\s+([\p{L}\s]+)\s+de\s+(\d{2}\/\d{2}\/\d{4})\s+até\s+(\d{2}\/\d{2}\/\d{4})/u;
+    const match = text.match(regex);
+
+    const cidade = match?.[1]?.trim();
+    const data_inicio = match?.[2] ? formatDate(match[2]) : undefined;
+    const data_fim = match?.[3] ? formatDate(match[3]) : undefined;
+
+    if (!cidade) {
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: "Por favor, informe uma cidade válida." },
+      ]);
+      return;
+    }
+
     try {
-      const response = await fetch(
-        `/api/mcp?cidade=${encodeURIComponent(text)}`
-      );
+      const params = new URLSearchParams({ cidade });
+      if (data_inicio) params.append("data_inicio", data_inicio);
+      if (data_fim) params.append("data_fim", data_fim);
+
+      const response = await fetch(`/api/mcp?${params.toString()}`);
       const data = await response.json();
 
       setMessages((prev) => [
         ...prev,
-        { sender: "bot", text: data.content[0].text || "Consulta concluída." },
+        {
+          sender: "bot",
+          text: data.content?.[0]?.text || "Consulta concluída.",
+        },
       ]);
 
-      onUpdateData(data.data)
+      if (data.data) onUpdateData(data.data);
     } catch (error) {
       setMessages((prev) => [
         ...prev,

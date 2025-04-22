@@ -26,6 +26,7 @@ export default async function handler(req, res) {
     if (cidade) {
       const cidadeNormalizada = normalizarCidade(cidade);
 
+      // Consultando estações para a cidade
       const { data: stationData, error: stationError } = await supabase
         .from("stations")
         .select("id_station, city_station, state")
@@ -65,6 +66,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: weatherError.message });
     }
 
+    if (!weatherData || weatherData.length === 0) {
+      return res.status(404).json({
+        error: "Nenhum dado de clima encontrado para as datas e cidade informadas.",
+      });
+    }
+
     const temperaturas = weatherData.map((item) => item.temp_avg);
     const media =
       temperaturas.reduce((sum, val) => sum + val, 0) / temperaturas.length;
@@ -89,8 +96,8 @@ export default async function handler(req, res) {
       end_date,
       media: media.toFixed(2),
       mensagem: `O clima médio para a cidade de ${cidade} de ${start_date} a ${end_date} é de ${media.toFixed(2)} graus.`,
-      data: [...resultadoFinal]
-    }
+      data: resultadoFinal,
+    };
 
     return res.status(200).json(result);
   } catch (err) {
