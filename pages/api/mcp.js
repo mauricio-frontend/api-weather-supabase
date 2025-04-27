@@ -4,6 +4,7 @@ export default async function handler(req, res) {
   const cidade = req.query.cidade || req.body?.cidade;
   const data_inicio = req.query.data_inicio || req.body?.data_inicio;
   const data_fim = req.query.data_fim || req.body?.data_fim;
+  const field = req.query.field || req.body?.field;
 
   if (!cidade) {
     return res.status(400).json({ error: "Parâmetro 'cidade' é obrigatório." });
@@ -16,6 +17,7 @@ export default async function handler(req, res) {
       cidade,
       data_inicio,
       data_fim,
+      field,
     });
 
     res.status(200).json(result);

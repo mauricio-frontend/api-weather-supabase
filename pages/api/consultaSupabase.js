@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { cidade, data_inicio, data_fim } = req.query;
+    const { cidade, data_inicio, data_fim, field = 'temp_avg' } = req.query;
 
     let stationIds = [];
     let stationsData = [];
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
 
     let query = supabase
       .from("weather_data")
-      .select("temp_avg, date, station_code");
+      .select(`${field}, date, station_code`);
 
     if (stationIds.length > 0) {
       query = query.in("station_code", stationIds);
@@ -68,13 +68,13 @@ export default async function handler(req, res) {
 
     if (!weatherData || weatherData.length === 0) {
       return res.status(404).json({
-        error: "Nenhum dado de clima encontrado para as datas e cidade informadas.",
+        error: `Nenhum dado de ${field} encontrado para as datas e cidade informadas.`,
       });
     }
 
-    const temperaturas = weatherData.map((item) => item.temp_avg);
+    const medias = weatherData.map((item) => item[field]);
     const media =
-      temperaturas.reduce((sum, val) => sum + val, 0) / temperaturas.length;
+      medias.reduce((sum, val) => sum + val, 0) / medias.length;
 
     const start_date = weatherData[0].date;
     const end_date = weatherData[weatherData.length - 1].date;
@@ -95,7 +95,7 @@ export default async function handler(req, res) {
       start_date,
       end_date,
       media: media.toFixed(2),
-      mensagem: `O clima médio para a cidade de ${cidade} de ${start_date} a ${end_date} é de ${media.toFixed(2)} graus.`,
+      mensagem: `O ${field} para a cidade de ${cidade} de ${start_date} a ${end_date} é de ${media.toFixed(2)} graus.`,
       data: resultadoFinal,
     };
 
