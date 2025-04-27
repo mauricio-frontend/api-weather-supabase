@@ -5,15 +5,21 @@ export default async function handler(req, res) {
   const data_inicio = req.query.data_inicio || req.body?.data_inicio;
   const data_fim = req.query.data_fim || req.body?.data_fim;
   const field = req.query.field || req.body?.field;
-
+  const functionName =
+    req.query.functionName || req.body?.functionName || "consulta_clima_cidade";
   if (!cidade) {
     return res.status(400).json({ error: "Parâmetro 'cidade' é obrigatório." });
   }
 
   try {
-    const result = await server._registeredTools[
-      "consulta-clima-cidade"
-    ].callback({
+    const toolCallback = server._registeredTools[functionName]?.callback;
+    if (!toolCallback) {
+      return res
+        .status(400)
+        .json({ error: `Função '${functionName}' não registrada.` });
+    }
+
+    const result = await toolCallback({
       cidade,
       data_inicio,
       data_fim,

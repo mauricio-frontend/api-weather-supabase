@@ -14,13 +14,13 @@ function groupByDay(dados) {
       agrupado[data] = { soma: 0, count: 0 };
     }
 
-    agrupado[data].soma += item.temp_avg; // Supondo que o campo seja 'temperatura'
+    agrupado[data].soma += item.media;
     agrupado[data].count += 1;
   });
 
   return Object.entries(agrupado).map(([data, { soma, count }]) => ({
     date: data,
-    temp_avg: soma / count,
+    media: soma / count,
   }));
 }
 

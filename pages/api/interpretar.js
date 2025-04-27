@@ -12,18 +12,16 @@ export default async function handler(req, res) {
 
   try {
     const result = await chamarConsultaClimaViaCohere(mensagem);
-
     const { cidade, data_inicio, data_fim } = result;
     const params = new URLSearchParams({ cidade });
+
     if (data_inicio) params.append("data_inicio", data_inicio);
     if (data_fim) params.append("data_fim", data_fim);
+    if (result.field) params.append("field", result.field);
+    if (result.functionName) params.append("functionName", result.functionName);
 
     const baseUrl = process.env.HOST_URL || "http://localhost:3000";
-
-    console.log("Params", params.toString());
-
     const finalUrl = `${baseUrl}/api/mcp?${params.toString()}`;
-    console.log("Consultando:", finalUrl);
 
     const response = await fetch(finalUrl);
     const data = await response.json();
@@ -46,5 +44,3 @@ export default async function handler(req, res) {
     });
   }
 }
-
-// Quero saber o clima de Bagé de 01/02/2025 até 10/02/2025

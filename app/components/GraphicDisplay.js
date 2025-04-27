@@ -9,7 +9,7 @@ const GraphicDisplay = ({ dados }) => {
       data: dados
         ? dados.map((d) => ({
             x: d.date,
-            y: d.temp_avg,
+            y: d.media,
           }))
         : [],
     },

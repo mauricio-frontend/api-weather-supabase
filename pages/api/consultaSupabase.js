@@ -26,7 +26,6 @@ export default async function handler(req, res) {
     if (cidade) {
       const cidadeNormalizada = normalizarCidade(cidade);
 
-      // Consultando estações para a cidade
       const { data: stationData, error: stationError } = await supabase
         .from("stations")
         .select("id_station, city_station, state")
@@ -86,6 +85,7 @@ export default async function handler(req, res) {
 
       return {
         ...weatherRecord,
+        media: weatherRecord[field],
         city_station: stationInfo ? stationInfo.city_station : null,
         state: stationInfo ? stationInfo.state : null,
       };
@@ -95,7 +95,7 @@ export default async function handler(req, res) {
       start_date,
       end_date,
       media: media.toFixed(2),
-      mensagem: `O ${field} para a cidade de ${cidade} de ${start_date} a ${end_date} é de ${media.toFixed(2)} graus.`,
+      mensagem: `O ${field} para a cidade de ${cidade} de ${start_date} a ${end_date} é de ${media.toFixed(2)}.`,
       data: resultadoFinal,
     };
 
