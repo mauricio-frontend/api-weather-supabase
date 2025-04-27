@@ -18,10 +18,9 @@ export default async function handler(req, res) {
     if (data_inicio) params.append("data_inicio", data_inicio);
     if (data_fim) params.append("data_fim", data_fim);
 
-    const baseUrl =
-      process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+    const baseUrl = process.env.HOST_URL || "http://localhost:3000";
 
-    console.log("Params", params.toString())
+    console.log("Params", params.toString());
 
     const finalUrl = `${baseUrl}/api/mcp?${params.toString()}`;
     console.log("Consultando:", finalUrl);
