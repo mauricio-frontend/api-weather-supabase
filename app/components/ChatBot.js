@@ -28,7 +28,7 @@ export default function ChatBot({ onUpdateData }) {
   const [messages, setMessages] = useState([
     {
       sender: "bot",
-      text: "Olá! Me diga uma cidade para consultar o clima.",
+      text: "Olá! Me dia uma cidade e se você deseja consultar umidade ou clima com um período definido.",
     },
   ]);
 
@@ -57,15 +57,15 @@ export default function ChatBot({ onUpdateData }) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow p-4 flex flex-col gap-4">
+    <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col gap-4">
       <div className="h-60 overflow-y-auto flex flex-col gap-2">
         {messages.map((msg, i) => (
           <div
             key={i}
-            className={`text-sm p-2 rounded-md max-w-xs ${
+            className={`text-sm p-3 rounded-lg max-w-xs ${
               msg.sender === "bot"
-                ? "bg-gray-100 self-start"
-                : "bg-blue-100 self-end"
+                ? "bg-gray-200 self-start"
+                : "bg-blue-200 self-end"
             }`}
           >
             {msg.text}

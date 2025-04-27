@@ -34,7 +34,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 p-4">
       <ChatBot onUpdateData={handleChartData} />
       <GraphDisplay weatherData={weatherData} />
     </div>
