@@ -1,4 +1,13 @@
 import { chamarConsultaClimaViaCohere } from "@/lib/openai/callOpenAi";
+import Pusher from "pusher";
+
+const pusher = new Pusher({
+  appId: process.env.PUSHER_APP_ID,
+  key: process.env.PUSHER_KEY,
+  secret: process.env.PUSHER_SECRET,
+  cluster: process.env.PUSHER_CLUSTER,
+  useTLS: true,
+});
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -27,8 +36,13 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (data && data.data) {
+      const mensagemFinal = data.content?.[0]?.text || "Consulta concluída.";
+
+      pusher.trigger('my-channel', 'my-event', {
+        message: mensagemFinal,
+      });
+
       return res.status(200).json({
-        mensagem: data.content?.[0]?.text || "Consulta concluída.",
         dados: data.data,
       });
     } else {
@@ -38,6 +52,10 @@ export default async function handler(req, res) {
       });
     }
   } catch (error) {
+    pusher.trigger('my-channel', 'my-event', {
+      message: error.message,
+    });
+
     return res.status(500).json({
       error: "Erro ao processar a mensagem com IA.",
       detalhes: error.message,

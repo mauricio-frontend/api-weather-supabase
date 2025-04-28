@@ -17,7 +17,7 @@ const GraphicDisplay = ({ dados }) => {
 
   return (
     <div className="bg-white rounded-xl shadow-lg">
-      <div style={{ width: "100%", height: 400, overflowX: "auto" }}>
+      <div style={{ width: "100%", height: 420, overflowX: "auto" }}>
         <div style={{ width: Math.max(800, dados.length * 80), height: 400 }}>
           <ResponsiveLine
             data={chartData}
