@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import Pusher from 'pusher';
 
 function normalizarCidade(str) {
   return str
@@ -11,6 +12,14 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_KEY
 );
+
+const pusher = new Pusher({
+  appId: process.env.PUSHER_APP_ID,
+  key: process.env.PUSHER_KEY,
+  secret: process.env.PUSHER_SECRET,
+  cluster: process.env.PUSHER_CLUSTER,
+  useTLS: true
+});
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -95,9 +104,12 @@ export default async function handler(req, res) {
       start_date,
       end_date,
       media: media.toFixed(2),
-      mensagem: `O ${field} para a cidade de ${cidade} de ${start_date} a ${end_date} é de ${media.toFixed(2)}.`,
       data: resultadoFinal,
     };
+
+    pusher.trigger('my-channel', 'my-event', {
+      message: `O ${field} para a cidade de ${cidade} de ${start_date} a ${end_date} é de ${media.toFixed(2)}.`,
+    });
 
     return res.status(200).json(result);
   } catch (err) {

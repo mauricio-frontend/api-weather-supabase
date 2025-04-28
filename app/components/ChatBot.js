@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MessageInput from "./MessageInput";
+import Pusher from 'pusher-js';
 
 async function chamarConsultaClimaViaCohere(text) {
   try {
@@ -28,31 +29,39 @@ export default function ChatBot({ onUpdateData }) {
   const [messages, setMessages] = useState([
     {
       sender: "bot",
-      text: "Olá! Me dia uma cidade e se você deseja consultar umidade ou clima com um período definido.",
+      text: "Olá! Me diga uma cidade e se você deseja consultar umidade ou clima com um período definido.",
     },
   ]);
 
-  const handleSend = async (text) => {
-    if (!text) return;
-    onUpdateData([])
+  useEffect(() => {
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+    });
 
-    try {
-      const { mensagem, dados } = await chamarConsultaClimaViaCohere(text);
-
+    const channel = pusher.subscribe('my-channel');
+    channel.bind('my-event', (data) => {
       setMessages((prev) => [
         ...prev,
-        {
-          sender: "bot",
-          text: mensagem || "Consulta concluída.",
-        },
+        { sender: "bot", text: data.message || "Consulta concluída." },
       ]);
+    });
+
+    return () => {
+      channel.unbind_all();
+      channel.unsubscribe();
+    };
+  }, []);
+
+  const handleSend = async (text) => {
+    if (!text) return;
+    onUpdateData([]);
+
+    try {
+      const { dados } = await chamarConsultaClimaViaCohere(text);
 
       if (dados) onUpdateData(dados);
     } catch (error) {
-      setMessages((prev) => [
-        ...prev,
-        { sender: "bot", text: "Erro ao buscar o clima. Tente novamente." },
-      ]);
+      console.error('Erro:', error);
     }
   };
 
